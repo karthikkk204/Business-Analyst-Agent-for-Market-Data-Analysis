@@ -1,0 +1,444 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CrewInsight MVP - Business Analyst Agent</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+        
+        .header {
+            background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+        
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+        }
+        
+        .header p {
+            opacity: 0.9;
+            font-size: 1.1rem;
+        }
+        
+        .content {
+            padding: 40px;
+        }
+        
+        .form-section {
+            background: #f8f9fa;
+            padding: 30px;
+            border-radius: 8px;
+            margin-bottom: 30px;
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #2c3e50;
+        }
+        
+        select, input {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e9ecef;
+            border-radius: 6px;
+            font-size: 16px;
+            transition: border-color 0.3s;
+        }
+        
+        select:focus, input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+        
+        .btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 6px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s;
+            width: 100%;
+        }
+        
+        .btn:hover {
+            transform: translateY(-2px);
+        }
+        
+        .btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+        
+        .results-section {
+            margin-top: 30px;
+            padding: 30px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            display: none;
+        }
+        
+        .loading {
+            text-align: center;
+            padding: 40px;
+            display: none;
+        }
+        
+        .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #667eea;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .trend-item {
+            background: white;
+            padding: 20px;
+            margin-bottom: 15px;
+            border-radius: 8px;
+            border-left: 4px solid #667eea;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        
+        .trend-positive {
+            border-left-color: #27ae60;
+        }
+        
+        .trend-negative {
+            border-left-color: #e74c3c;
+        }
+        
+        .trend-neutral {
+            border-left-color: #f39c12;
+        }
+        
+        .trend-title {
+            font-size: 1.2rem;
+            font-weight: 600;
+            margin-bottom: 8px;
+            color: #2c3e50;
+        }
+        
+        .trend-confidence {
+            background: #667eea;
+            color: white;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 0.8rem;
+            display: inline-block;
+            margin-bottom: 10px;
+        }
+        
+        .summary {
+            background: white;
+            padding: 25px;
+            border-radius: 8px;
+            margin-top: 20px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        
+        .summary h3 {
+            color: #2c3e50;
+            margin-bottom: 15px;
+        }
+        
+        .error {
+            background: #e74c3c;
+            color: white;
+            padding: 15px;
+            border-radius: 6px;
+            margin-top: 20px;
+        }
+        
+        .success {
+            background: #27ae60;
+            color: white;
+            padding: 15px;
+            border-radius: 6px;
+            margin-top: 20px;
+        }
+        
+        .grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+        
+        @media (max-width: 768px) {
+            .grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .header h1 {
+                font-size: 2rem;
+            }
+            
+            .content {
+                padding: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🚀 CrewInsight MVP</h1>
+            <p>Business Analyst Agent for Market Data Analysis</p>
+        </div>
+        
+        <div class="content">
+            <div class="form-section">
+                <h2>📊 Market Analysis Request</h2>
+                <form id="analysisForm">
+                    <div class="grid">
+                        <div class="form-group">
+                            <label for="market">Market/Sector</label>
+                            <input type="text" id="market" name="market" placeholder="e.g., technology, finance, healthcare" required>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="region">Region</label>
+                            <select id="region" name="region" required>
+                                <option value="US">United States</option>
+                                <option value="EU">European Union</option>
+                                <option value="ASIA">Asia Pacific</option>
+                                <option value="GLOBAL">Global</option>
+                            </select>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="timeframe">Timeframe</label>
+                            <select id="timeframe" name="timeframe" required>
+                                <option value="1d">Daily</option>
+                                <option value="1w">Weekly</option>
+                                <option value="1m" selected>Monthly</option>
+                                <option value="3m">Quarterly</option>
+                                <option value="1y">Yearly</option>
+                            </select>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="apiKey">API Key</label>
+                            <input type="text" id="apiKey" name="apiKey" value="crewinsight-mvp-2024" required>
+                        </div>
+                    </div>
+                    
+                    <button type="submit" class="btn" id="analyzeBtn">
+                        🔍 Analyze Market
+                    </button>
+                </form>
+            </div>
+            
+            <div class="loading" id="loading">
+                <div class="spinner"></div>
+                <p>Analyzing market data and identifying trends...</p>
+                <p><small>This may take 30-60 seconds</small></p>
+            </div>
+            
+            <div class="results-section" id="results">
+                <h2>📈 Analysis Results</h2>
+                <div id="resultsContent"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE = 'http://localhost:8000';
+        
+        document.getElementById('analysisForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const formData = new FormData(e.target);
+            const requestData = {
+                market: formData.get('market'),
+                region: formData.get('region'),
+                timeframe: formData.get('timeframe'),
+                api_key: formData.get('apiKey')
+            };
+            
+            // Show loading
+            document.getElementById('loading').style.display = 'block';
+            document.getElementById('results').style.display = 'none';
+            document.getElementById('analyzeBtn').disabled = true;
+            
+            try {
+                // Start analysis
+                const response = await fetch(`${API_BASE}/analyze`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(requestData)
+                });
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                
+                const data = await response.json();
+                const analysisId = data.analysis_id;
+                
+                // Poll for results
+                await pollForResults(analysisId, requestData.api_key);
+                
+            } catch (error) {
+                showError('Failed to start analysis: ' + error.message);
+            } finally {
+                document.getElementById('loading').style.display = 'none';
+                document.getElementById('analyzeBtn').disabled = false;
+            }
+        });
+        
+        async function pollForResults(analysisId, apiKey) {
+            const maxAttempts = 60; // 60 seconds max
+            let attempts = 0;
+            
+            while (attempts < maxAttempts) {
+                try {
+                    const response = await fetch(`${API_BASE}/results/${analysisId}?api_key=${apiKey}`);
+                    
+                    if (!response.ok) {
+                        throw new Error(`HTTP error! status: ${response.status}`);
+                    }
+                    
+                    const data = await response.json();
+                    
+                    if (data.status === 'completed') {
+                        displayResults(data);
+                        return;
+                    } else if (data.status === 'failed') {
+                        throw new Error(data.error_message || 'Analysis failed');
+                    }
+                    
+                    // Wait 1 second before next poll
+                    await new Promise(resolve => setTimeout(resolve, 1000));
+                    attempts++;
+                    
+                } catch (error) {
+                    showError('Failed to get results: ' + error.message);
+                    return;
+                }
+            }
+            
+            showError('Analysis timed out. Please try again.');
+        }
+        
+        function displayResults(data) {
+            const resultsContent = document.getElementById('resultsContent');
+            
+            let html = `
+                <div class="success">
+                    ✅ Analysis completed in ${data.processing_time.toFixed(1)} seconds
+                </div>
+            `;
+            
+            // Display trends
+            if (data.trends && data.trends.length > 0) {
+                html += '<h3>🎯 Key Trends Identified</h3>';
+                
+                data.trends.forEach(trend => {
+                    const impactClass = `trend-${trend.impact}`;
+                    const impactEmoji = {
+                        'positive': '📈',
+                        'negative': '📉',
+                        'neutral': '➡️'
+                    }[trend.impact] || '➡️';
+                    
+                    html += `
+                        <div class="trend-item ${impactClass}">
+                            <div class="trend-title">
+                                ${impactEmoji} ${trend.trend_name}
+                            </div>
+                            <div class="trend-confidence">
+                                Confidence: ${(trend.confidence * 100).toFixed(0)}%
+                            </div>
+                            <p>${trend.description}</p>
+                            ${trend.supporting_data && trend.supporting_data.length > 0 ? 
+                                `<small><strong>Supporting data:</strong> ${trend.supporting_data.join(', ')}</small>` : ''
+                            }
+                        </div>
+                    `;
+                });
+            }
+            
+            // Display summary
+            if (data.summary) {
+                html += `
+                    <div class="summary">
+                        <h3>📋 Executive Summary</h3>
+                        <p>${data.summary}</p>
+                    </div>
+                `;
+            }
+            
+            resultsContent.innerHTML = html;
+            document.getElementById('results').style.display = 'block';
+        }
+        
+        function showError(message) {
+            const resultsContent = document.getElementById('resultsContent');
+            resultsContent.innerHTML = `
+                <div class="error">
+                    ❌ ${message}
+                </div>
+            `;
+            document.getElementById('results').style.display = 'block';
+        }
+        
+        // Check API health on page load
+        window.addEventListener('load', async function() {
+            try {
+                const response = await fetch(`${API_BASE}/health`);
+                if (response.ok) {
+                    console.log('✅ API is healthy');
+                } else {
+                    console.warn('⚠️ API health check failed');
+                }
+            } catch (error) {
+                console.error('❌ Cannot connect to API:', error);
+            }
+        });
+    </script>
+</body>
+</html>
